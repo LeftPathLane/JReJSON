@@ -147,13 +147,13 @@ public class JReJSON {
     }
 
     /**
-     * Gets an object
+     * Gets a json string of the value requested
      * @param conn the Jedis connection
      * @param key the key name
      * @param paths optional one ore more paths in the object, defaults to root
-     * @return the requested object
+     * @return the Json string representation of the object
      */
-    public static Object get(Jedis conn, String key, Path... paths) {
+    public static String get(Jedis conn, String key, Path... paths) {
 
         List<byte[]> args = new ArrayList(2);
 
@@ -165,7 +165,20 @@ public class JReJSON {
         String rep = conn.getClient().getBulkReply();
 
         assertReplyNotError(rep);
-        return gson.fromJson(rep, Object.class);
+        return rep;
+    }
+
+    /**
+     * Gets an object of type T
+     * @param <T> the type of the desired object
+     * @param conn the Jedis connection
+     * @param key the key name
+     * @param clazz the class of T
+     * @param paths optional one ore more paths in the object, defaults to root
+     * @return an object of type T
+     */
+    public static <T> T get(Jedis conn, String key, Class<T> clazz, Path... paths) {
+        return gson.fromJson(get(conn, key, paths), clazz);
     }
 
     /**
@@ -491,7 +504,7 @@ public class JReJSON {
     /**
      * Trims the array at the specified path for the specified key to the start and stop indexes
      * if start is larger then the length of the array or the start is greater then the stop then the array will be cleared
-     * if start < 0 it will default to 0 if stop is larger then the end of the array it will be treated like the last element
+     * if start is less then 0 it will default to 0 if stop is larger then the end of the array it will be treated like the last element
      * @param conn the Jedis connection
      * @param key the key name
      * @param path the path to the array
